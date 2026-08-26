@@ -297,27 +297,60 @@
   });
 
   downloadBtn.addEventListener('click', () => {
-    setTimeout(() => {
-      const img = qrDiv.querySelector('img');
-      const canvas = qrDiv.querySelector('canvas');
-      let dataUrl;
+  setTimeout(() => {
+    const img = qrDiv.querySelector('img');
+    const canvas = qrDiv.querySelector('canvas');
 
-      if (canvas) {
-        dataUrl = canvas.toDataURL('image/png');
-      } else if (img) {
-        dataUrl = img.src;
-      } else {
-        return;
-      }
+    let sourceCanvas;
 
-      const a = document.createElement('a');
-      a.href = dataUrl;
-      a.download = 'qrcode.png';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    }, 100);
-  });
+    if (canvas) {
+      sourceCanvas = canvas;
+    } else if (img) {
+      sourceCanvas = document.createElement('canvas');
+      sourceCanvas.width = img.naturalWidth || img.width;
+      sourceCanvas.height = img.naturalHeight || img.height;
+
+      const ctx = sourceCanvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+    } else {
+      return;
+    }
+
+    // Marge blanche autour du QR code
+    const margin = 40;
+
+    const finalCanvas = document.createElement('canvas');
+    finalCanvas.width = sourceCanvas.width + margin * 2;
+    finalCanvas.height = sourceCanvas.height + margin * 2;
+
+    const ctx = finalCanvas.getContext('2d');
+
+    // Fond blanc
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(
+      0,
+      0,
+      finalCanvas.width,
+      finalCanvas.height
+    );
+
+    // QR code au centre avec la marge blanche
+    ctx.drawImage(
+      sourceCanvas,
+      margin,
+      margin
+    );
+
+    // Téléchargement
+    const a = document.createElement('a');
+    a.href = finalCanvas.toDataURL('image/png');
+    a.download = 'qrcode.png';
+
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }, 100);
+});
 </script>
 
 </body>
